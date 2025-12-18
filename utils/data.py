@@ -1,33 +1,3 @@
-import sys
-import astropy_healpix as ah
-from mocpy import MOC
-from mocpy import World2ScreenMPL
-import astropy_healpix as ah
-import healpy as hp
-from astropy.io import fits
-import numpy as np
-import os
-import time
-from astropy.coordinates import SkyCoord,Angle
-import astropy.coordinates as coord
-from astropy import units as u
-from astropy.table import Table
-from astropy.table import hstack, vstack
-import pandas as pd
-from joblib import Parallel, delayed
-from tqdm import tqdm
-
-def mkdir(directory_path): 
-    if os.path.exists(directory_path): 
-        return directory_path
-    else: 
-        try: 
-            os.makedirs(directory_path)
-        except: 
-            # in case another machine created the path meanwhile !:(
-            return sys.exit("Erro ao criar diretório") 
-        return directory_path
-
 def open_fits_catalog(fits_file):
     """
     Return the table version of the fits catalog.
@@ -79,6 +49,7 @@ def modest_class_mask(catalog_,classes_list=[1,3],sm_key='SPREAD_MODEL_G',smerr_
                  'highgal':1 ,
                  'highstar':2 ,
                  'ambigous':3 }
+    
     classes = np.full(len(catalog_), 99).astype('int16')
 
     for mt in mtype_dic:
@@ -118,59 +89,3 @@ def modest_class_mask(catalog_,classes_list=[1,3],sm_key='SPREAD_MODEL_G',smerr_
 
         return classes, mask
 
-def mag_g_mask(cat_, maglim=23.5,g_key='MAG_AUTO_G'): 
-    
-    mask = np.array(cat_[g_key])<maglim
-    
-    return mask
-
-def flag_g_mask(cat_, flag_key='FLAGS_G', flaglim=3): 
-    
-    mask = np.array(cat_[flag_key])<flaglim
-    
-    return mask
-
-def clean_catalog(file_path, save_dir):
-    
-    cat = open_fits_catalog(file_path)
-    
-    do_mag_g_mask =  mag_g_mask(cat, maglim=23.5,g_key='MAG_AUTO_G')
-    do_flag_g_mask =  flag_g_mask(cat, flag_key='FLAGS_G', flaglim=3)
-    do_modest_class_mask = modest_class_mask(cat,classes_list=[1,3],
-                                             sm_key='SPREAD_MODEL_G',
-                                             smerr_key='SPREADERR_MODEL_G',
-                                             mag_key='MAG_AUTO_G',
-                                             wsm_key='WAVG_SPREAD_MODEL_G',
-                                             return_class='mask')
-    
-    final_mask = do_mag_g_mask*do_flag_g_mask*do_modest_class_mask
-    
-    filename = file_path.split('/')[-1]
-    
-    with open(save_dir+'delve_cleaning_summary.txt', 'a') as f:
-        f.write(f'{filename} - initial:{len(cat):010d} objs - final:{sum(final_mask):010d} objs\n')
-        f.close()
-    
-    final_cat = cat[final_mask]
-    final_cat.write(save_dir+filename, format='fits', overwrite=True)
-    
-
-DELVE_DR2_R1_PATH = '/tf/dados10T/delve_dr2_cats/r1/'
-DELVE_DR2_R2_PATH = '/tf/dados10T/delve_dr2_cats/r2/'
-DELVE_DR2_FILES = [DELVE_DR2_R1_PATH + file for file in os.listdir(DELVE_DR2_R1_PATH) if file.endswith('.fits')] + \
-                  [DELVE_DR2_R2_PATH + file for file in os.listdir(DELVE_DR2_R2_PATH) if file.endswith('.fits')]
-
-SAVE_DIR =  mkdir('/tf/astrodados/DELVE_DR2_cleaned/')
-NUM_PROCESS = 6
-
-with open(SAVE_DIR + 'delve_cleaning_summary.txt', 'w') as f:
-    # f.write(f'')
-    f.close()
-
-start_clean = time.time()
-Parallel(n_jobs=NUM_PROCESS)(delayed(clean_catalog)(file_path=DELVE_DR2_FILES[i], save_dir=SAVE_DIR) for i in tqdm(range(len(DELVE_DR2_FILES))))
-end_clean = time.time()
-
-with open(SAVE_DIR + 'delve_cleaning_summary.txt', 'a') as f:
-    f.write(f'ELAPSED TIME = {(end_clean - start_clean)/60:.2f} min\n')
-    f.close()
