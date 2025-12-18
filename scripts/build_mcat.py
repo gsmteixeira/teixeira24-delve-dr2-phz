@@ -7,11 +7,17 @@ from utils.utils import mkdir
 from utils.processing import open_fits_catalog, modest_class_mask
 
 def main():
+    """
+    Main entry point for cleaning DELVE DR2 photometric catalogs.
+
+    Applies magnitude, flag, and MODEST star–galaxy classification
+    cuts to each catalog and saves the cleaned outputs.
+    """
     #DELVE DR2 data available at https://datalab.noirlab.edu/data-explorer?showTable=delve_dr2.objects 
-    DELVE_DR2_PATH = '/tf/astrodados/DELVE_DR2_cleaned/'
+    DELVE_DR2_PATH = '/tf/astrodados/DELVE_DR2_cleaned/' # data/delve_dr2/
     DELVE_DR2_FILES = [os.path.join(DELVE_DR2_PATH, file) for file in os.listdir(DELVE_DR2_PATH) if file.endswith('.fits')] 
 
-    SAVE_DIR =  mkdir('data/MCAT/')
+    SAVE_DIR =  mkdir('data/mcat/')
     NUM_PROCESS = 6
 
     with open(SAVE_DIR + 'delve_cleaning_summary.txt', 'w') as f:
@@ -29,19 +35,28 @@ def main():
         f.close()
 
 def mag_g_mask(cat_, maglim=23.5,g_key='MAG_AUTO_G'): 
-    
+    """
+    Create a boolean mask selecting objects brighter than a given g-band magnitude.
+    """
     mask = np.array(cat_[g_key])<maglim
     
     return mask
 
 def flag_g_mask(cat_, flag_key='FLAGS_G', flaglim=3): 
-    
+    """
+    Create a boolean mask selecting objects with acceptable g-band quality flags.
+    """
     mask = np.array(cat_[flag_key])<flaglim
     
     return mask
 
 def clean_catalog(file_path, save_dir):
-    
+    """
+    Clean a single DELVE DR2 catalog.
+
+    Applies magnitude, flag, and MODEST classification cuts,
+    writes the cleaned catalog to disk, and logs summary statistics.
+    """
     cat = open_fits_catalog(file_path)
     
     do_mag_g_mask =  mag_g_mask(cat, maglim=23.5,g_key='MAG_AUTO_G')

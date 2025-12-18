@@ -1,63 +1,71 @@
-# Code for Teixeira et al. (2024)
+Code for Teixeira et al. (2024)
 
 This repository contains the code used to produce the results presented in  
-**Teixeira et al. (2024)**.
 
-The scope of this repository is limited to the data processing, modeling, and
+Teixeira et al. (2024),
+“Photometric Redshifts Probability Density Estimation from Recurrent Neural Networks in the DECam Local Volume Exploration Survey Data Release 2”
+Astronomy and Computing
+https://doi.org/10.1016/j.ascom.2024.100886
+
+The scope of this repository is restricted to the data processing, modeling, and
 analysis steps directly related to the results discussed in the paper.
-Components related to the autoencoder framework are intentionally excluded.
+Components associated with the autoencoder framework described in the work are
+intentionally excluded.
 
----
+------------------------------------------------------------
 
-## Repository Structure
-
-The repository is organized as follows:
+Repository Structure
 
 .
-├── data/              # Example data for running the codes and inspecting the data structure
+├── data/              # Example data for running the codes and inspecting data structure
 │
 ├── figures/           # Figures appearing in the paper
 │
 ├── notebooks/         # Example notebooks illustrating the workflow
 │
-├── scripts/         # Example notebooks illustrating the workflow
+├── scripts/           # Analysis and processing scripts
 │
 ├── utils/             # Custom Python modules used throughout the workflow
 │
 ├── requirements.txt   # Python dependencies
 
-<!---
+------------------------------------------------------------
 
-## Code Overview
+Code Overview
 
-### analysis/
-Scripts that reproduce the main results of the paper.
+scripts/
+Scripts responsible for catalog cleaning, cross-matching, model execution,
+and generation of the results presented in the paper.
 
+utils/
+Shared utility modules, including:
+- FITS catalog handling
+- catalog matching routines
+- photometric quality cuts
+- helper functions for parallel processing
 
-### utils/
-General-purpose utilities, including:
-- data loading  
-- plotting routines  
-- metric computation  
-- helper functions  
-- neural network frameworks
----
+notebooks/
+Example notebooks demonstrating the main analysis steps and workflow logic.
 
-## Data
+------------------------------------------------------------
 
-Raw data are not included in this repository.
+Data
 
-Expected directory structure:
+Raw survey data are not included in this repository.
 
-data/raw/  
-data/processed/  
+The scripts assume access to external datasets (e.g. DELVE DR2, spectroscopic
+reference catalogs). File paths should be adapted by the user within the scripts
+or notebooks.
 
-Paths to the data files should be specified within the analysis scripts and
-adapted by the user as needed.
+Example expected structure:
 
----
+data/
+├── raw/
+├── processed/
 
-## Requirements
+------------------------------------------------------------
+
+Requirements
 
 A minimal Python environment can be set up with:
 
@@ -65,13 +73,13 @@ pip install -r requirements.txt
 
 The code has been tested with Python ≥ 3.9.
 
----
+------------------------------------------------------------
 
-## Reproducibility
+Reproducibility
 
-This repository is intended to support the reproduction of the main results
+This repository is intended to support reproducibility of the main results
 presented in the paper, assuming access to the corresponding datasets.
 
-For further details, please refer to the paper or open an issue in this
+For methodological details and scientific context, please refer to the paper.
+For questions or issues related to the code, feel free to open an issue in this
 repository.
--->

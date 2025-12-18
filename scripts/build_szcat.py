@@ -1,12 +1,12 @@
 """
 Author: Gabriel Teixeira
 
-Pipeline for photometric–spectroscopic cross-matching of DELVE DR2 catalogs.
-Colum names may be deprecated.
+Pipeline for cleaning DELVE DR2 photometric catalogs.
 
-This script performs parallel cross-matching between DELVE photometric catalogs
-and multiple spectroscopic reference catalogs, resolves
-duplicate matches, and produces a final merged spectroscopic redshift catalog.
+This script applies magnitude, quality-flag, and MODEST star–galaxy
+classification cuts to DELVE DR2 photometric catalogs. The processing
+is performed in parallel and produces cleaned catalogs along with
+summary statistics describing the object selection.
 """
 
 import os
