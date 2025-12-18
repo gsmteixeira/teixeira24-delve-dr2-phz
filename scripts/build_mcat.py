@@ -1,11 +1,15 @@
-
+import os
+import time
+import numpy as np
+from joblib import Parallel, delayed
+from tqdm import tqdm
+from utils.utils import mkdir
+from utils.processing import open_fits_catalog, modest_class_mask
 
 def main():
     #DELVE DR2 data available at https://datalab.noirlab.edu/data-explorer?showTable=delve_dr2.objects 
-    DELVE_DR2_R1_PATH = '/tf/dados10T/delve_dr2_cats/r1/' # deprecated file tree
-    DELVE_DR2_R2_PATH = '/tf/dados10T/delve_dr2_cats/r2/'
-    DELVE_DR2_FILES = [DELVE_DR2_R1_PATH + file for file in os.listdir(DELVE_DR2_R1_PATH) if file.endswith('.fits')] + \
-                    [DELVE_DR2_R2_PATH + file for file in os.listdir(DELVE_DR2_R2_PATH) if file.endswith('.fits')]
+    DELVE_DR2_PATH = '/tf/astrodados/DELVE_DR2_cleaned/'
+    DELVE_DR2_FILES = [os.path.join(DELVE_DR2_PATH, file) for file in os.listdir(DELVE_DR2_PATH) if file.endswith('.fits')] 
 
     SAVE_DIR =  mkdir('data/MCAT/')
     NUM_PROCESS = 6
@@ -15,7 +19,9 @@ def main():
         f.close()
 
     start_clean = time.time()
-    Parallel(n_jobs=NUM_PROCESS)(delayed(clean_catalog)(file_path=DELVE_DR2_FILES[i], save_dir=SAVE_DIR) for i in tqdm(range(len(DELVE_DR2_FILES))))
+    Parallel(n_jobs=NUM_PROCESS)(delayed(clean_catalog)\
+                                (file_path=DELVE_DR2_FILES[i], save_dir=SAVE_DIR)\
+                                for i in tqdm(range(1))) # for the complete analysis use tqdm(range(len(DELVE_DR2_FILES)))
     end_clean = time.time()
 
     with open(SAVE_DIR + 'delve_cleaning_summary.txt', 'a') as f:
