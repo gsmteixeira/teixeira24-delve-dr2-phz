@@ -1,6 +1,14 @@
+"""
+Author: Gabriel Teixeira
+
+Utility functions for catalog processing basic operations.
+"""
+
 import numpy as np
 from astropy.io import fits
-from astropy.table import Table
+from astropy.table import Table, hstack
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 def open_fits_catalog(fits_file):
     """
@@ -93,3 +101,48 @@ def modest_class_mask(catalog_,classes_list=[1,3],sm_key='SPREAD_MODEL_G',smerr_
 
         return classes, mask
 
+def match_cats(cat_1, cat_ref, sep=0.00027,
+                     cat_1_radec_name=["RA","DEC"], cat_ref_radec_name=["RA","DEC"]):    
+    """
+    Match the cat_1 catalog with the correspondent cat_ref catalog.
+
+    Parameters:
+    cat_1 (fits Table): photometry catalog.
+    cat_ref (fits Table): reference catalog.
+    cat_1_radec_name: (list): RA and DEC column names for the photometry catalogue
+    cat_ref_radec_name: (list): RA and DEC column names for the reference catalogue
+    
+    Returns:
+    fits Table: Matched catalog. Right part: cat_1 features. Second part: cat_ref features. 
+    """
+    
+    
+    x = np.array(cat_1[cat_1_radec_name[0]]).astype('float')
+    y = np.array(cat_1[cat_1_radec_name[1]]).astype('float')
+    
+    x_ref = np.array(cat_ref[cat_ref_radec_name[0]]).astype('float')
+    y_ref = np.array(cat_ref[cat_ref_radec_name[1]]).astype('float')
+    
+    cat_1_coords = SkyCoord(ra=x*u.degree, dec=y*u.degree)
+
+    cat_ref_coords = SkyCoord(ra=x_ref*u.degree, dec=y_ref*u.degree) 
+    
+    idx, d2d, _ = cat_1_coords.match_to_catalog_sky(cat_ref_coords)
+    
+    
+    '''
+    idx contem os indices no cat_ref que correspondem a cada um dos objetos no cat1
+    depois disso pegamos quais desses indices correspondem a objetos com separação radial menor que 0.00027
+    e então indexamos isso ao cat1
+    '''
+    
+    cat_1_matched_mask = np.array(d2d)<=sep # bool.posições no cat1 correspondentes aos objetos que tiveram match 
+    cat_ref_matched_idxs = idx[np.array(d2d)<=sep]
+
+    cat_1_match = cat_1.copy()[cat_1_matched_mask]
+    cat_ref_cat_matched = cat_ref.copy()[cat_ref_matched_idxs]
+    
+    
+    matched_cat = hstack([cat_1_match, cat_ref_cat_matched])
+    
+    return matched_cat

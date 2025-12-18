@@ -220,14 +220,7 @@ def match_loop(spec_cat, legacy_path, save_dir, spec_name):
     matched_catalog.write(save_dir+filename,
                          format='fits',
                          overwrite=True)
-    
-    
 
-    
-    
-    
-# DELVE_DR2_R1_PATH = '/tf/dados10T/delve_dr2_cats/r1/'
-# DELVE_DR2_R2_PATH = '/tf/dados10T/delve_dr2_cats/r2/'
 DELVE_CLEANED_PATH =  '/tf/astrodados/DELVE_DR2_cleaned/'
 DELVE_DR2_FILES = [DELVE_CLEANED_PATH + file for file in os.listdir(DELVE_CLEANED_PATH) if file.endswith('.fits')]
 
