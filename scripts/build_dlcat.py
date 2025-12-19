@@ -74,7 +74,7 @@ def main():
     plt.hist(extra_data['Z'], bins=bins, alpha=.5, label='extra')
     plt.xlabel('$z_{spec}$')
     plt.ylabel('count')
-    plt.savefig(os.path.join(PLOT_DIR, "dltrain_a_hist.png"))
+    plt.savefig(os.path.join(PLOT_DIR, "dltrain_a_hist.png"), bbox_inches="tight")
 
 
     bandas = ['MAG_AUTO_G', 'MAG_AUTO_R', 'MAG_AUTO_I', 'MAG_AUTO_Z']#, 'MAG_W1', 'MAG_W2', 'MAG_W3', 'MAG_W4']
