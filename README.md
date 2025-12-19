@@ -15,30 +15,13 @@ intentionally excluded.
 Repository Structure
 
 
-
+.
 ├── data/              # Example data for running the codes and inspecting data structure
-
-│
-
 ├── figures/           # Figures appearing in the paper
-
-│
-
 ├── notebooks/         # Example notebooks illustrating the workflow
-
-│
-
 ├── scripts/           # Analysis and processing scripts
-
-│
-
 ├── utils/             # Custom Python modules used throughout the workflow
-
-│
-
-├── requirements.txt   # Python dependencies
-
-
+└── requirements.txt   # Python dependencies
 
 ------------------------------------------------------------
 
