@@ -1,96 +1,31 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from utils.utils import mkdir
-from utils.processing import open_fits_catalog
+from astropy.io import fits
 import os
+import numpy as np
+from astropy.table import Table
+import matplotlib.pyplot as plt
+import pandas as pd
+import sys
 
-def main():
+def open_fits_catalog(fits_file):
+    hdu_list=fits.open(fits_file, ignore_missing_end=True)
+    #print hdu_list
+    hdu = hdu_list[1]    # table extensions can't be the first extension, so there's a dummy image extension at 0
+    #print hdu.header
+    cat_table = Table(hdu.data)
+    cols=hdu.columns
+    return cat_table
 
+def mkdir(directory_path): 
+    if os.path.exists(directory_path): 
+        return directory_path
+    else: 
+        try: 
+            os.makedirs(directory_path)
+        except: 
+            # in case another machine created the path meanwhile !:(
+            return sys.exit("Erro ao criar diretório") 
+        return directory_path
 
-    MATCHED_DIR = 'data/szcat/'
-    DATASET_DIR = mkdir('data/dlcat/')
-    PLOT_DIR = mkdir('figures/')
-
-    data = open_fits_catalog(os.path.join(MATCHED_DIR, "szcat.fits"))
-
-
-    z_mask = z_cuts_mask(cat=data, zlow=0.01, zhigh=1, zcol_name='Z')
-    mag_mask = mag_cuts_mask(cat=data)
-    color_mask = color_cuts_mask(cat=data)
-    snr_mask = snr_cuts_mask(cat=data)
-
-    all_mask = color_mask*z_mask*mag_mask*snr_mask 
-    with open(os.path.join(DATASET_DIR, "dlcat_summary.txt"), 'w') as f:
-        f.write(f'Pre-Cut data = {len(z_mask):} Objects')
-        f.write(f'percentual of good z = {np.sum(z_mask)/len(z_mask)*100:.2f} %')
-        f.write(f'percentual of good mag (g,r,i,z) = {np.sum(mag_mask)/len(mag_mask)*100:.2f} %')
-        f.write(f'percentual of good color (g-r), (r-i), (i-z) = {np.sum(color_mask)/len(color_mask)*100:.2f} %')
-        f.write(f'percentual of good SNR = {np.sum(snr_mask)/len(snr_mask)*100:.2f} %')
-        f.write(f'percentual of surviving  objects = {np.sum(all_mask)/len(all_mask)*100:.2f} %-> {np.sum(all_mask)} Objects')
-
-
-    data = data# for non-test version: data[all_mask]
-
-    #########SHUFFLING##################
-    np.random.seed(137)
-    data = data.copy()[np.random.choice(len(data), len(data), replace=False)]
-
-    features = ['RA', 'DEC', 'QUICK_OBJECT_ID',
-                'MAG_AUTO_G', 'MAGERR_AUTO_G',
-                'MAG_AUTO_R', 'MAGERR_AUTO_R',
-                'MAG_AUTO_I', 'MAGERR_AUTO_I',
-                'MAG_AUTO_Z', 'MAGERR_AUTO_Z', 'Z']
-
-    data = data[features].to_pandas()
-    data.to_csv(os.path.join(DATASET_DIR, 'dlcat.csv'))
-
-    # if already built: 
-    # data = pd.read_csv('data/dlcat.csv')
-
-    zwidth=0.05
-    flat_z_lim = 0.8 # for DLTRAIN-A; 0.6 for DLTRAIN-B; and 0.0 for DLTRAIN-C
-
-    bins = np.arange(0.01, 1, zwidth)
-
-    np.random.seed(137)
-    test_mask = np.random.uniform(0,1,len(data)) < .2
-
-    test_data = data[test_mask]
-    trainable_data = data[~test_mask]
-
-    plt_style()
-    plt.figure(figsize=(8,8), dpi=100)
-
-    # print(np.arange(0, 1, zwidth))
-    # aaa
-    flat_mask = flat_hist_masks(zdata=trainable_data['Z'], flat_z_lim=flat_z_lim, 
-                                zwidth=zwidth, zmin=0, zmax=1)#np.full(len(trainable_data), True)#
-
-    train_data = trainable_data[flat_mask]
-    extra_data = trainable_data[~flat_mask]
-    plt.hist(train_data['Z'], bins=bins, alpha=.5, label='train')
-    plt.hist(test_data['Z'], bins=bins, alpha=.5, label='test')
-    plt.hist(extra_data['Z'], bins=bins, alpha=.5, label='extra')
-    plt.xlabel('$z_{spec}$')
-    plt.ylabel('count')
-    plt.savefig(os.path.join(PLOT_DIR, "dltrain_a_hist.png"))
-
-
-    bandas = ['MAG_AUTO_G', 'MAG_AUTO_R', 'MAG_AUTO_I', 'MAG_AUTO_Z']#, 'MAG_W1', 'MAG_W2', 'MAG_W3', 'MAG_W4']
-
-    for i in range(len(bandas)):
-        for b in bandas[i+1:]:
-            train_data[f'{bandas[i]}-{b}'] = np.array(train_data[f'{bandas[i]}']) - np.array(train_data[f'{b}']) 
-            test_data[f'{bandas[i]}-{b}'] = np.array(test_data[f'{bandas[i]}']) - np.array(test_data[f'{b}'])
-            extra_data[f'{bandas[i]}-{b}'] = np.array(extra_data[f'{bandas[i]}']) - np.array(extra_data[f'{b}'])
-
-    train_data.to_csv(DATASET_DIR + 'dltrain_a.csv')
-    test_data.to_csv(DATASET_DIR + 'test_data.csv')
-    extra_data.to_csv(DATASET_DIR + 'extra_data.csv')
-
-
-####### Functions #######
 def z_cuts_mask(cat, zlow=0.01, zhigh=1.5, zcol_name='Z' ):
     mask = np.array(cat[zcol_name]>zlow) & np.array(cat[zcol_name]<zhigh)
     return mask
@@ -140,16 +75,12 @@ def color_cuts_mask(cat, magg_key='MAG_AUTO_G', magr_key='MAG_AUTO_R',
     return all_mask
 
 def flat_hist_masks(zdata, flat_z_lim=0.8, zwidth=0.05, zmin=None, zmax=None):
-    if zmin==None:
-        aaa
+    if not zmin:
         zmin = np.min(zdata)
-    if zmax==None:
+    if not zmax:
         zmax = np.max(zdata)
-    
-    # print(zmin)
+        
     zbins = np.arange(zmin, zmax, zwidth)
-    # aaaaaaa
-    # print(zdata)
     zidxs = np.array(range(len(zdata)))
     
     height_lim = min([np.sum((zdata>aux_z_lim-zwidth) & (zdata<aux_z_lim)) for aux_z_lim in np.arange(zmin+zwidth, flat_z_lim+zwidth, zwidth)])
@@ -177,7 +108,7 @@ def plt_style():
                         'font.weight':'normal',
                         'font.size':22.0,
                         'text.color':'black',
-                        'text.usetex':False,
+                        'text.usetex':True,
                         'axes.edgecolor':'black',
                         'axes.linewidth':1.0,
                         'axes.grid':False,
@@ -204,7 +135,83 @@ def plt_style():
                         #'legend.fontsize':'x-large',
                         'legend.shadow':False,
                         'legend.frameon':False})
+    
+
+    
+MATCHED_DIR = '/tf/astrodados/DELVE_DR2_Xmatch_specz/'
+DATASET_DIR = '/tf/astrodados/Datasets/'
+legacy_data = open_fits_catalog(MATCHED_DIR+'DELVE_DR2_SPECZ_EXTMAG_SET2023.fits')
+
+#Test
+# legacy_data = legacy_data[np.random.uniform(0,1,len(legacy_data)) < .1]
+
+z_mask = z_cuts_mask(cat=legacy_data, zlow=0.01, zhigh=1.5, zcol_name='Z')
+mag_mask = mag_cuts_mask(cat=legacy_data)
+color_mask = color_cuts_mask(cat=legacy_data)
+snr_mask = snr_cuts_mask(cat=legacy_data)
+
+all_mask = color_mask*z_mask*mag_mask#*snr_mask RETIRADA PARA NÃO RODAR TODOS OS RESULTADOS E COMPARAÇÕES DE NOVO, A DIFERENÇA QUE FAZ É DE 0.1%
+with open(DATASET_DIR+'DELVE_DR2_train_test_log_B.txt', 'w') as f:
+    f.write(f'Pre-Cut data = {len(z_mask):} Objects')
+    f.write(f'percentual of good z = {np.sum(z_mask)/len(z_mask)*100:.2f} %')
+    f.write(f'percentual of good mag (g,r,i,z) = {np.sum(mag_mask)/len(mag_mask)*100:.2f} %')
+    f.write(f'percentual of good color (g-r), (r-i), (i-z) = {np.sum(color_mask)/len(color_mask)*100:.2f} %')
+    f.write(f'percentual of good SNR = {np.sum(snr_mask)/len(snr_mask)*100:.2f} %')
+    f.write(f'percentual of surviving  objects = {np.sum(all_mask)/len(all_mask)*100:.2f} %-> {np.sum(all_mask)} Objects')
+
+legacy_data = legacy_data[all_mask]
+
+#########SHUFFLING##################
+np.random.seed(137)
+legacy_data = legacy_data.copy()[np.random.choice(len(legacy_data), len(legacy_data), replace=False)]
+
+features = ['RA', 'DEC', 'QUICK_OBJECT_ID',
+            'MAG_G', 'MAGERR_G', 'MAG_R', 'MAGERR_R', 'MAG_I','MAGERR_I', 'MAG_Z', 'MAGERR_Z', 'Z']   
+features = [f.replace('MAG_', 'MAG_AUTO_').replace('MAGERR_','MAGERR_AUTO_') for f in features]
+
+legacy_data = legacy_data[features].to_pandas()
+legacy_data.to_csv('/tf/astrodados/Datasets/DELVE_DR2_SPECZ_MATCH_TRAINABLE_B.csv')
+
+############################## CONSERTANDO ERRO ###############################################
+legacy_data = pd.read_csv('/tf/astrodados/Datasets/DELVE_DR2_SPECZ_MATCH_TRAINABLE.csv')
+###############################################################################################
+
+zwidth=0.05
+flat_z_lim = 0.6
+
+bins = np.arange(0.01, 1.5, zwidth)
+
+np.random.seed(137)
+test_mask = np.random.uniform(0,1,len(legacy_data)) < .2
+
+test_data = legacy_data[test_mask]
+trainable_data = legacy_data[~test_mask]
+
+plt_style()
+plt.figure(figsize=(8,8), dpi=100)
+# plt.hist(legacy_data_2['Z'], bins=nbins)
+
+flat_mask = flat_hist_masks(zdata=trainable_data['Z'], flat_z_lim=flat_z_lim, zwidth=zwidth)#np.full(len(trainable_data), True)#
+
+train_data = trainable_data[flat_mask]
+extra_data = trainable_data[~flat_mask]
+plt.hist(train_data['Z'], bins=bins, alpha=.5, label='train')
+plt.hist(test_data['Z'], bins=bins, alpha=.5, label='test')
+plt.hist(extra_data['Z'], bins=bins, alpha=.5, label='extra')
+plt.xlabel('$z_{spec}$')
+plt.ylabel('count')
+PLOT_DIR = '/tf/ProjectGabriel/photoz_paper/Plots/'
+plt.savefig(PLOT_DIR+'DELVE_DR2_GRIZ_train_validation_Balance_B.png')
 
 
-if __name__=="__main__":
-    main()
+bandas = ['MAG_AUTO_G', 'MAG_AUTO_R', 'MAG_AUTO_I', 'MAG_AUTO_Z']#, 'MAG_W1', 'MAG_W2', 'MAG_W3', 'MAG_W4']
+
+for i in range(len(bandas)):
+    for b in bandas[i+1:]:
+        train_data[f'{bandas[i]}-{b}'] = np.array(train_data[f'{bandas[i]}']) - np.array(train_data[f'{b}']) 
+        test_data[f'{bandas[i]}-{b}'] = np.array(test_data[f'{bandas[i]}']) - np.array(test_data[f'{b}'])
+        extra_data[f'{bandas[i]}-{b}'] = np.array(extra_data[f'{bandas[i]}']) - np.array(extra_data[f'{b}'])
+
+train_data.to_csv(DATASET_DIR + 'DELVE_DR2_train_flat_GRIZ_B.csv')
+test_data.to_csv(DATASET_DIR + 'DELVE_DR2_test_flat_GRIZ_B.csv')
+extra_data.to_csv(DATASET_DIR + 'DELVE_DR2_extra_flat_GRIZ_B.csv')

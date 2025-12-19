@@ -77,7 +77,50 @@ def clean_catalog(file_path, save_dir):
         f.close()
     
     final_cat = cat[final_mask]
+    final_cat = apply_extinction_delve(final_cat)
+
     final_cat.write(save_dir+filename, format='fits', overwrite=True)
+
+def apply_extinction_delve(cat,
+                     magg_key='MAG_AUTO_G', magr_key='MAG_AUTO_R',
+                     magi_key='MAG_AUTO_I', magz_key='MAG_AUTO_Z'):
+    """
+    Apply Galactic extinction corrections to DELVE photometric magnitudes.
+
+    This function subtracts band-specific extinction values from the corresponding
+    observed magnitudes, using extinction columns available in the input catalog.
+
+    Parameters
+    ----------
+    cat : astropy.table.Table
+        Input catalog containing photometric magnitudes and extinction columns.
+    magg_key, magr_key, magi_key, magz_key : str
+        Column names for g, r, i, z-band magnitudes to be extinction-corrected.
+
+    Returns
+    -------
+    astropy.table.Table
+        Catalog with extinction-corrected magnitudes (modified in place).
+    """
+    
+    key_list = [magg_key, magr_key ,magi_key ,magz_key]
+
+    # Loop over each photometric band
+    for key in key_list:
+        # Build a mask selecting objects with valid magnitudes and extinction values
+        mask = (
+            (np.array(cat[key]) < 90) *
+            (np.array(cat[key]) > 0) *
+            (np.array(cat[key.replace('MAG_AUTO', 'EXTINCTION')]) < 90) *
+            (np.array(cat[key.replace('MAG_AUTO', 'EXTINCTION')]) > 0)
+        )
+
+        # Subtract extinction from observed magnitudes for valid entries
+        cat[key][mask] = cat[key][mask] - cat[key.replace('MAG_AUTO', 'EXTINCTION')][mask]
+    
+    # Return the catalog with corrected magnitudes
+    return cat
+
 
 if __name__=="__main__":
     main()
