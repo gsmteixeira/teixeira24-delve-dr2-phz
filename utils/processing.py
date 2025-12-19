@@ -3,12 +3,13 @@ Author: Gabriel Teixeira
 
 Utility functions for catalog processing basic operations.
 """
-
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 from astropy.io import fits
 from astropy.table import Table, hstack
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+import pandas as pd
 
 def open_fits_catalog(fits_file):
     """
@@ -146,3 +147,75 @@ def match_cats(cat_1, cat_ref, sep=0.00027,
     matched_cat = hstack([cat_1_match, cat_ref_cat_matched])
     
     return matched_cat
+
+
+def prepare_data(train_path, test_path, zcol_name='Z', dataset=None, scaler=None):
+    """
+    Load, select, and preprocess photometric data for training and testing.
+
+    This function:
+    - Reads training and test catalogs from CSV files
+    - Selects a fixed set of magnitude and color features (GRIZ by default)
+    - Applies standardization using a provided or newly created scaler
+    - Returns feature matrices and target vectors ready for model input
+
+    Parameters
+    ----------
+    train_path : str
+        Path to the training CSV file.
+    test_path : str
+        Path to the test CSV file.
+    zcol_name : str
+        Name of the redshift column.
+    dataset : optional
+        Placeholder for dataset selection (currently unused).
+    scaler : sklearn scaler, optional
+        Scaler instance to apply to the data. If None, a StandardScaler is created.
+
+    Returns
+    -------
+    x_train : ndarray
+        Scaled training features.
+    y_train : ndarray
+        Training redshift targets.
+    x_test : ndarray
+        Scaled test features.
+    y_test : ndarray
+        Test redshift targets.
+    scaler : sklearn scaler
+        Fitted scaler used in the preprocessing.
+    """
+    
+    if not scaler:
+        scaler = StandardScaler()
+    
+    train_data = pd.read_csv(train_path)
+    test_data = pd.read_csv(test_path)
+    
+    # GRIZ
+    keys = ['MAG_G', 'MAG_R', 'MAG_I', 'MAG_Z',
+            'MAG_G-MAG_R', 'MAG_G-MAG_I', 'MAG_G-MAG_Z',
+            'MAG_R-MAG_I', 'MAG_R-MAG_Z','MAG_I-MAG_Z']
+    
+    #GRI
+    # keys = ['MAG_G', 'MAG_R', 'MAG_I',
+    #         'MAG_G-MAG_R', 'MAG_G-MAG_I', 'MAG_R-MAG_I',]
+    #GRZ
+    # keys = ['MAG_G', 'MAG_R', 'MAG_Z',
+    #         'MAG_G-MAG_R', 'MAG_G-MAG_Z', 'MAG_R-MAG_Z',]
+    keys = [k.replace('MAG_', 'MAG_AUTO_') for k in keys]
+    print(keys)
+    y_train = train_data[zcol_name].values
+    y_test = test_data[zcol_name].values
+    x_train = train_data[keys].values
+    x_test = test_data[keys].values
+
+    x_train = scaler.fit_transform(x_train)
+    x_test = scaler.transform(x_test)   
+
+    print(f'X Train Shape = {x_train.shape}')
+    print(f'Y Train Shape = {y_train.shape}')
+    print(f'X Test Shape = {x_test.shape}')
+    print(f'Y Test Shape = {y_test.shape}')
+
+    return x_train, y_train, x_test, y_test, scaler

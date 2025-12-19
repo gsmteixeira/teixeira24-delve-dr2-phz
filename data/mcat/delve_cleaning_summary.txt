@@ -1,0 +1,2 @@
+cat_hpx_04028.fits - initial:0000034730 objs - final:0000034730 objs
+ELAPSED TIME = 0.01 min

@@ -89,6 +89,8 @@ def main():
     test_data.to_csv(DATASET_DIR + 'test_data.csv')
     extra_data.to_csv(DATASET_DIR + 'extra_data.csv')
 
+    return
+
 
 ####### Functions #######
 def z_cuts_mask(cat, zlow=0.01, zhigh=1.5, zcol_name='Z' ):

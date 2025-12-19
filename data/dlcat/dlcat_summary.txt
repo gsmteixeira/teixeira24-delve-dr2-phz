@@ -1,0 +1,1 @@
+Pre-Cut data = 589 Objectspercentual of good z = 99.49 %percentual of good mag (g,r,i,z) = 0.00 %percentual of good color (g-r), (r-i), (i-z) = 0.00 %percentual of good SNR = 0.00 %percentual of surviving  objects = 0.00 %-> 0 Objects
