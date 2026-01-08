@@ -1,9 +1,5 @@
-## This repository contains the code used to produce the results presented in  
-
-Teixeira et al. (2024),
-“Photometric Redshifts Probability Density Estimation from Recurrent Neural Networks in the DECam Local Volume Exploration Survey Data Release 2”
-Astronomy and Computing
-https://doi.org/10.1016/j.ascom.2024.100886
+## This repository contains the code used to produce the results presented in  Teixeira et al. (2024),
+# “Photometric Redshifts Probability Density Estimation from Recurrent Neural Networks in the DECam Local Volume Exploration Survey Data Release 2”, Astronomy and Computing, https://doi.org/10.1016/j.ascom.2024.100886
 
 The scope of this repository is restricted to the data processing, modeling, and
 analysis steps directly related to the results discussed in the paper.
@@ -66,5 +62,5 @@ repository.
 
 # Documentation
 
-The documentation (docstrings and inline comments) was generated with the assistance of a LLMs.  
+The documentation (docstrings and inline comments) was generated with the assistance of LLMs.  
 Please do not hesitate to contact the authors if you have any questions or require further clarification.
