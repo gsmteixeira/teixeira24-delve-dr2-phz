@@ -17,7 +17,7 @@ Repository Structure
 
 ```text
 .
-├── data/              # Example data for running the codes and inspecting da   ta structure
+├── data/              # Example data for running the codes and inspecting data structure
 ├── figures/           # Figures appearing in the paper
 ├── notebooks/         # Example notebooks for plotting
 ├── scripts/           # Analysis and processing scripts
@@ -49,8 +49,8 @@ Example notebooks demonstrating the main analysis steps and workflow logic.
 
 Raw survey data are not included in this repository.
 
-The scripts assume access to external datasets (e.g. DELVE DR2, spectroscopic
-reference catalogs). File paths should be adapted by the user within the scripts
+The scripts assume access to external datasets (e.g. [DELVE DR2](https://datalab.noirlab.edu/data/delve#delve-dr2), [spectroscopic
+reference catalogs](https://zenodo.org/records/15114194)). File paths should be adapted by the user within the scripts
 or notebooks.
 
 ------------------------------------------------------------
