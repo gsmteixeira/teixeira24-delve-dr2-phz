@@ -15,12 +15,12 @@ Repository Structure
 .
 ├── data/              # Example data for running the codes and inspecting data structure
 ├── figures/           # Figures appearing in the paper
-├── notebooks/         # Example notebooks for plotting
+├── notebooks/         # Example notebooks for plotting*
 ├── scripts/           # Analysis and processing scripts
 ├── utils/             # Custom Python modules used throughout the workflow
 └── requirements.txt   # Python dependencies
 ```
-
+ <sub>(*) PDFs metrics plots addapted from [Erik Lima](https://github.com/ErikVini)</sub>
 ------------------------------------------------------------
 
 # Code Overview
