@@ -20,7 +20,7 @@ Repository Structure
 ├── utils/             # Custom Python modules used throughout the workflow
 └── requirements.txt   # Python dependencies
 ```
-###### (*) PDFs metrics plots addapted from [Erik Lima](https://github.com/ErikVini)
+###### (*) PDF metrics plots addapted from [Erik Lima](https://github.com/ErikVini)
 ------------------------------------------------------------
 
 # Code Overview
